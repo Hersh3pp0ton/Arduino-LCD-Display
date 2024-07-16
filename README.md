@@ -1,0 +1,7 @@
+### To combat boredom, I created this project for the PC and for my personal wellness using Arduino (with some modules) and a Python script.
+Temperature and Humidity module: DHT11 ([Amazon](https://www.amazon.it/AZDelivery-Sensore-temperatura-umidità-Raspberry/dp/B07TYPT2NJ/ref=sr_1_6?__mk_it_IT=ÅMÅŽÕÑ&crid=2IPU409EFJKV2&dib=eyJ2IjoiMSJ9.2Awk8N-EFI7vYu4Sjky146vNS_DOhggo5KRzgcUfmOr4OqHdC3OC81if_u47JfnxSB0d5zd-8Q_c3771iPGgcniUYwL6oYHNuhgibazEBoXlCZq6sPIcCHcpEOb5znYKKtsN8jxHKoo0HBDmjuaN-JIqB3ISOC2Svo47pi2Q_Z1SxU8KuAnsdp7rFEyPhe_J5-u82hk9fYX9laCtWot5OgLtYjXNM_a6Sep3_5XXhJ1MjxGfdB9IOKx3J0bNcqc-2PGKLFPLldk_bkjUBRSioE7kY4ycsfGoTIPGAvOKTbc.nxw1_bpk60yz_Fty_z-csMAOEPfH38tYhdLeeRfFs-A&dib_tag=se&keywords=DHT%2B11%2Bsensor&qid=1721134340&sprefix=dht%2B11%2Bsenso%2Caps%2C121&sr=8-6&th=1))
+16x2 LCD Display ([Amazon](https://www.amazon.it/AZDelivery-Sensore-temperatura-umidità-Raspberry/dp/B07TYPT2NJ/ref=sr_1_6?__mk_it_IT=ÅMÅŽÕÑ&crid=2IPU409EFJKV2&dib=eyJ2IjoiMSJ9.2Awk8N-EFI7vYu4Sjky146vNS_DOhggo5KRzgcUfmOr4OqHdC3OC81if_u47JfnxSB0d5zd-8Q_c3771iPGgcniUYwL6oYHNuhgibazEBoXlCZq6sPIcCHcpEOb5znYKKtsN8jxHKoo0HBDmjuaN-JIqB3ISOC2Svo47pi2Q_Z1SxU8KuAnsdp7rFEyPhe_J5-u82hk9fYX9laCtWot5OgLtYjXNM_a6Sep3_5XXhJ1MjxGfdB9IOKx3J0bNcqc-2PGKLFPLldk_bkjUBRSioE7kY4ycsfGoTIPGAvOKTbc.nxw1_bpk60yz_Fty_z-csMAOEPfH38tYhdLeeRfFs-A&dib_tag=se&keywords=DHT%2B11%2Bsensor&qid=1721134340&sprefix=dht%2B11%2Bsenso%2Caps%2C121&sr=8-6&th=1))
+
+How I transformed a .py file into a .exe using PyInstaller via CMD:
+
+C:\Users\{user}\{your_directory}>pyinstaller SystemStats.py --onefile --noconsole
