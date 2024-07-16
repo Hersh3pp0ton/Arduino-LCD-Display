@@ -6,7 +6,7 @@ LiquidCrystal lcd(4, 5, 6, 7, 8, 9);
 
 int contrasto = 100;
 int ritardo = 3000;
-String utente = "Giuseppe";
+String utente = "";
 String data = "";
 String cpuUsage = "";
 String diskUsage = "";
