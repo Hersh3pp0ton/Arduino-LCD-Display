@@ -27,8 +27,7 @@ try:
             )
             gpu_temp = result.stdout.decode('utf-8').strip()
 
-            data = f"{cpu_usage}%  {disk_usage}% {ram_usage}% {gpu_temp}\n"
-            data = f"{cpu_usage}%  {disk_usage}% {ram_usage}%\n"
+            data = f"{cpu_usage}%  {disk_usage}%  {ram_usage}% {gpu_temp}\n"
             ser.write(data.encode())
             print(f"Inviato: {data.strip()}")               # sends the data to the COM3 (Arduino)
 
