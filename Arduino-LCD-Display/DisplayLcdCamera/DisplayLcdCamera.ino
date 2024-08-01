@@ -6,7 +6,6 @@ DHT dht(2, DHT11);
 LiquidCrystal lcd(4, 5, 6, 7, 8, 9);
 
 int contrast = 100;
-String utente = "";
 String data = "N/A";
 String cpuUsage = "N/A";
 String diskUsage = "N/A";

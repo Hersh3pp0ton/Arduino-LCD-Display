@@ -3,9 +3,23 @@ import time
 import serial
 import subprocess
 import requests
+import ezgmail
+import datetime
 
-city_name = ""
-api_key = ""
+ezgmail.init(tokenFile='token.json', credentialsFile='C:/Users/MSI/OneDrive/Desktop/Arduino LCD Display/Arduino-LCD-Display/credentials.json')
+
+year = datetime.datetime.now().year
+month = datetime.datetime.now().month
+day = datetime.datetime.now().day
+hour = datetime.datetime.now().hour
+minute = datetime.datetime.now().minute
+
+ezgmail.send(
+    recipient="eppesuig08@gmail.com",
+    subject="Il tuo PC è stato acceso",
+    body=f"Il tuo PC è stato appena acceso: {day}/{month}/{year} - {hour}:{minute}"
+)
+
 link = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api_key}"
 
 port = 'COM3'           # Arduino port
