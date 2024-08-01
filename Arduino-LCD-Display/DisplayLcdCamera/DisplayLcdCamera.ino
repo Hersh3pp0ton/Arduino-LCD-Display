@@ -1,25 +1,28 @@
 #include <LiquidCrystal.h>
 #include "DHT.h"
-#include "IRremote.h"
+//#include "IRremote.h"
 
 DHT dht(2, DHT11);
 LiquidCrystal lcd(4, 5, 6, 7, 8, 9);
 
-int contrasto = 100;
+int contrast = 100;
 String utente = "";
 String data = "N/A";
 String cpuUsage = "N/A";
 String diskUsage = "N/A";
 String ramUsage = "N/A";
 String gpuTemp = "N/A";
+String weatherDesc = "N/A";
 
 unsigned long previousMillis = 0;
 const long interval = 3000;
 int slideIndex = 0;
 
+/*
 int receiverPin = 1;
 IRrecv irrecv(receiverPin);
 decode_results results;
+*/
 
 byte smiley[8] = {
   B00000,
@@ -37,7 +40,7 @@ void setup() {
   lcd.begin(16, 2);
   
   //irrecv.enableIRIn();
-  analogWrite(11, 100);
+  analogWrite(3, contrast);
   lcd.createChar(0, smiley);
 }
 
@@ -66,13 +69,15 @@ void loop() {
 
     slideIndex = (slideIndex + 1) % 5;
   }
+  /*
 
   if (irrecv.decode(&results)) {
     TranslateIR();
     irrecv.resume();
   }
+  */
 }
-
+/*
 void TranslateIR() {
   switch(results.value) {
     case 0xFF629D:  // VOL+
@@ -89,16 +94,14 @@ void TranslateIR() {
 
   delay(100);
 }
+*/
 
 void GetStats() {
   if (Serial.available()) {
     data = Serial.readStringUntil('\n');
 
-    if (data.length() >= 18) {
-      cpuUsage = data.substring(0, 6);
-      diskUsage = data.substring(6, 12);
-      ramUsage = data.substring(12, 18);
-      gpuTemp = data.substring(18, data.length());
+    if (data.length() > 1) {
+      ParseData(data);
     } else {
       cpuUsage = "Error";
       diskUsage = "Error";
@@ -106,6 +109,19 @@ void GetStats() {
       gpuTemp = "Error";
     }
   }
+}
+
+void ParseData(String str) {
+  int indexCpuUsage = str.indexOf(",");
+  cpuUsage = str.substring(0, indexCpuUsage);
+  int indexDiskUsage = str.indexOf(",", indexCpuUsage + 1);
+  diskUsage = str.substring(indexCpuUsage + 1, indexDiskUsage);
+  int indexRamUsage = str.indexOf(",", indexDiskUsage + 1);
+  ramUsage = str.substring(indexDiskUsage + 1, indexRamUsage);
+  int indexGpuTemp = str.indexOf(",", indexRamUsage + 1);
+  gpuTemp = str.substring(indexRamUsage + 1, indexGpuTemp);
+  int indexweatherDesc = str.indexOf("\n", indexGpuTemp + 1);
+  weatherDesc = str.substring(indexGpuTemp + 1, indexweatherDesc);
 }
 
 void PrimaSlide() {
@@ -120,15 +136,7 @@ void PrimaSlide() {
   float humidity = dht.readHumidity();
 
   lcd.setCursor(0, 1);
-  if (isnan(temperature) || isnan(humidity)) {
-    lcd.print("Errore lettura");
-  } else if (temperature >= 30) {
-    lcd.print("Che caldo...");
-  } else if (temperature >= 20) {
-    lcd.print("Temperatura OK");
-  } else {
-    lcd.print("Che freddo! Brrr");
-  }
+  lcd.print(weatherDesc);
 }
 
 void SecondaSlide() {
@@ -175,8 +183,6 @@ void TerzaSlide() {
     lcd.print(secondiTotali % 60);
     lcd.print(" s");
   }
-
-  delay(1000);
 }
 
 void QuartaSlide(String cpuUsage, String diskUsage) {
@@ -184,20 +190,23 @@ void QuartaSlide(String cpuUsage, String diskUsage) {
   lcd.setCursor(0, 0);
   lcd.print("CPU: ");
   lcd.print(cpuUsage);
+  lcd.print("%");
 
   lcd.setCursor(0, 1);
   lcd.print("DISK: ");
   lcd.print(diskUsage);
+  lcd.print("%");
 }
 
 void QuintaSlide(String ramUsage, String gpuTemp) {
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("RAM:");
+  lcd.print("RAM: ");
   lcd.print(ramUsage);
+  lcd.print("%");
 
   lcd.setCursor(0, 1);
-  lcd.print("GPU:");
+  lcd.print("GPU: ");
   lcd.print(gpuTemp);
   lcd.print((char)223);
   lcd.print("C");

@@ -2,9 +2,26 @@ import psutil
 import time
 import serial
 import subprocess
+import requests
+
+city_name = ""
+api_key = ""
+link = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api_key}"
 
 port = 'COM3'           # Arduino port
 baud_rate = 9600        # bit/s of Arduino port (COM3)
+
+weather_translation = {     # italian translations
+    "clear sky": "Cielo sereno",
+    "few clouds": "Poche nuvole",
+    "scattered clouds": "Nuvole sparse",
+    "broken clouds": "Nuvole sparse",
+    "shower rain": "Pioggia leggera",
+    "rain": "Pioggia",
+    "thunderstorm": "Temporale",
+    "snow": "Neve",
+    "mist": "Nebbia"
+}
 
 try:
     ser = serial.Serial(port, baud_rate, timeout=1)         # tries to connect to COM3 ...
@@ -13,6 +30,19 @@ except serial.SerialException as e:
     exit()
 
 print(f"Connessione stabilita su {port}")                   # connection ready!
+
+def get_weather():
+    try:
+        print(f"Richiesta meteo all'URL: {link}")  # Debug: shows the URL
+        response = requests.get(link)
+        response.raise_for_status()  # wrong HTTPS
+        print(f"Risposta API: {response.text}")  # Debug: shows response text
+        weather_data = response.json()
+        description = weather_data['weather'][0]['description']
+        return weather_translation.get(description)
+    except requests.RequestException as e:
+        print(f"Errore nella richiesta delle informazioni meteo: {e}")
+        return "N/A"  # standard return for errors
 
 try:
     while True:
@@ -27,7 +57,9 @@ try:
             )
             gpu_temp = result.stdout.decode('utf-8').strip()
 
-            data = f"{cpu_usage}%  {disk_usage}%  {ram_usage}% {gpu_temp}\n"
+            weather_description = get_weather()
+
+            data = f"{cpu_usage},{disk_usage},{ram_usage},{gpu_temp},{weather_description}\n"
             ser.write(data.encode())
             print(f"Inviato: {data.strip()}")               # sends the data to the COM3 (Arduino)
 
