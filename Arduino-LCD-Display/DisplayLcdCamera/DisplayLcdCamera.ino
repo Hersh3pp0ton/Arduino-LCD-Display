@@ -1,6 +1,6 @@
 #include <LiquidCrystal.h>
 #include "DHT.h"
-//#include "IRremote.h"
+
 
 DHT dht(2, DHT11);
 LiquidCrystal lcd(4, 5, 6, 7, 8, 9);
@@ -17,11 +17,6 @@ unsigned long previousMillis = 0;
 const long interval = 3000;
 int slideIndex = 0;
 
-/*
-int receiverPin = 1;
-IRrecv irrecv(receiverPin);
-decode_results results;
-*/
 
 byte smiley[8] = {
   B00000,
@@ -37,8 +32,6 @@ void setup() {
   Serial.begin(9600);
   dht.begin();
   lcd.begin(16, 2);
-  
-  //irrecv.enableIRIn();
   analogWrite(3, contrast);
   lcd.createChar(0, smiley);
 }
@@ -68,32 +61,10 @@ void loop() {
 
     slideIndex = (slideIndex + 1) % 5;
   }
-  /*
 
-  if (irrecv.decode(&results)) {
-    TranslateIR();
-    irrecv.resume();
   }
   */
 }
-/*
-void TranslateIR() {
-  switch(results.value) {
-    case 0xFF629D:  // VOL+
-      contrasto += 10;
-      if (contrasto > 255) contrasto = 255;
-      analogWrite(3, contrasto);
-      break;
-    case 0xFFA857:  // VOL-
-      contrasto -= 10;
-      if (contrasto < 0) contrasto = 0;
-      analogWrite(3, contrasto);
-      break;
-  }
-
-  delay(100);
-}
-*/
 
 void GetStats() {
   if (Serial.available()) {
@@ -121,6 +92,16 @@ void ParseData(String str) {
   gpuTemp = str.substring(indexRamUsage + 1, indexGpuTemp);
   int indexweatherDesc = str.indexOf("\n", indexGpuTemp + 1);
   weatherDesc = str.substring(indexGpuTemp + 1, indexweatherDesc);
+}
+
+void PlayMelody() {
+  hasMelodyPlayed = true;
+  tone(buzzer, 392.00);
+  delay(100);
+  noTone(buzzer);
+  tone(buzzer, 440.00);
+  delay(100);
+  noTone(buzzer);
 }
 
 void PrimaSlide() {

@@ -5,82 +5,112 @@ import subprocess
 import requests
 import ezgmail
 import datetime
+import os
 
 ezgmail.init(tokenFile='token.json', credentialsFile='C:/Users/MSI/OneDrive/Desktop/Arduino LCD Display/Arduino-LCD-Display/credentials.json')
-
-year = datetime.datetime.now().year
-month = datetime.datetime.now().month
-day = datetime.datetime.now().day
-hour = datetime.datetime.now().hour
-minute = datetime.datetime.now().minute
-
-ezgmail.send(
     recipient="eppesuig08@gmail.com",
-    subject="Il tuo PC è stato acceso",
-    body=f"Il tuo PC è stato appena acceso: {day}/{month}/{year} - {hour}:{minute}"
-)
+def delete_token():
+    try:
+        os.remove('C:/Users/MSI/OneDrive/Desktop/Arduino LCD Display/Arduino-LCD-Display/token.json')
+    except:
+        print("Non è stato trovato il file 'token.json'.")
 
-link = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api_key}"
+def initialize_email():
+    try:
+    except Exception as e:
+        print(f"Errore nell'inizializzazione di ezgmail: {e}")
+        os.remove('token.json')
+        exit()
 
-port = 'COM3'           # Arduino port
-baud_rate = 9600        # bit/s of Arduino port (COM3)
+def send_email_notification():
+    try:
+        now = datetime.datetime.now()
+        ezgmail.send(
+            subject="Il tuo PC è stato acceso",
+            body=f"Il tuo PC è stato appena acceso: {now.day}/{now.month}/{now.year} - {now.hour}:{now.minute}"
+        )
+        print("Email inviata correttamente")
+    except Exception as e:
+        print(f"Errore nell'invio dell'email: {e}")
 
-weather_translation = {     # italian translations
-    "clear sky": "Cielo sereno",
-    "few clouds": "Poche nuvole",
-    "scattered clouds": "Nuvole sparse",
-    "broken clouds": "Nuvole sparse",
-    "shower rain": "Pioggia leggera",
-    "rain": "Pioggia",
-    "thunderstorm": "Temporale",
-    "snow": "Neve",
-    "mist": "Nebbia"
-}
+def get_weather(api_key, city_name):
+    link = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api_key}"
+    weather_translation = {
+        "clear sky": "Cielo sereno",
+        "few clouds": "Poche nuvole",
+        "scattered clouds": "Nuvole sparse",
+        "broken clouds": "Nuvole sparse",
+        "shower rain": "Pioggia leggera",
+        "moderate rain": "Pioggia Moderata",
+        "rain": "Pioggia",
+        "thunderstorm": "Temporale",
+        "snow": "Neve",
+        "mist": "Nebbia"
+    }
 
-try:
-    ser = serial.Serial(port, baud_rate, timeout=1)         # tries to connect to COM3 ...
-except serial.SerialException as e:
-    print(f"Errore nell'aprire la porta seriale: {e}")      # ... else it'll get an error
-    exit()
-
-print(f"Connessione stabilita su {port}")                   # connection ready!
-
-def get_weather():
     try:
         print(f"Richiesta meteo all'URL: {link}")  # Debug: shows the URL
         response = requests.get(link)
-        response.raise_for_status()  # wrong HTTPS
+        response.raise_for_status()
         print(f"Risposta API: {response.text}")  # Debug: shows response text
         weather_data = response.json()
         description = weather_data['weather'][0]['description']
-        return weather_translation.get(description)
+        return weather_translation.get(description, "Descrizione non disponibile")
     except requests.RequestException as e:
         print(f"Errore nella richiesta delle informazioni meteo: {e}")
-        return "N/A"  # standard return for errors
+        return "N/A"
 
-try:
-    while True:
-        try:
-            cpu_usage = psutil.cpu_percent(interval=1)      # CPU usage (in percentual)
-            disk_usage = psutil.disk_usage('/').percent     # disk (C:/) remaining memory (in percentual)
-            ram_usage = psutil.virtual_memory().percent     # RAM memory (in percentual)
-            result = subprocess.run(
-                ['nvidia-smi', '--query-gpu=temperature.gpu', '--format=csv,noheader'], 
-                stdout=subprocess.PIPE,                     # "saves" the output
-                creationflags=subprocess.CREATE_NO_WINDOW   # doesn't create a new CMD window (every N seconds)
-            )
-            gpu_temp = result.stdout.decode('utf-8').strip()
+def get_gpu_temperature():
+    try:
+        result = subprocess.run(
+            ['nvidia-smi', '--query-gpu=temperature.gpu', '--format=csv,noheader'],
+            stdout=subprocess.PIPE,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
+        return result.stdout.decode('utf-8').strip()
+    except subprocess.SubprocessError as e:
+        print(f"Errore nel recupero della temperatura della GPU: {e}")
+        return "N/A"
 
-            weather_description = get_weather()
+def main():
+    try:
+        initialize_email()
+    except:
+        delete_token()
+        initialize_email()
 
-            data = f"{cpu_usage},{disk_usage},{ram_usage},{gpu_temp},{weather_description}\n"
-            ser.write(data.encode())
-            print(f"Inviato: {data.strip()}")               # sends the data to the COM3 (Arduino)
+    send_email_notification()
 
-            time.sleep(5)                                   # waits 5 seconds
-        except serial.SerialException as e:
-            print(f"Errore durante la comunicazione seriale: {e}")
-            break
-finally:
-    ser.close()
-    print(f"Porta seriale {port} chiusa")
+    port = 'COM3'
+    baud_rate = 9600
+
+    try:
+        ser = serial.Serial(port, baud_rate, timeout=1)
+        print(f"Connessione stabilita su {port}")
+    except serial.SerialException as e:
+        print(f"Errore nell'aprire la porta seriale: {e}")
+        exit()
+
+    try:
+        while True:
+            try:
+                cpu_usage = psutil.cpu_percent(interval=1)
+                disk_usage = psutil.disk_usage('/').percent
+                ram_usage = psutil.virtual_memory().percent
+                gpu_temp = get_gpu_temperature()
+                weather_description = get_weather(api_key, city_name)
+
+                data = f"{cpu_usage},{disk_usage},{ram_usage},{gpu_temp},{weather_description}\n"
+                ser.write(data.encode())
+                print(f"Inviato: {data.strip()}")
+
+                time.sleep(5)
+            except serial.SerialException as e:
+                print(f"Errore durante la comunicazione seriale: {e}")
+                break
+    finally:
+        ser.close()
+        print(f"Porta seriale {port} chiusa")
+
+if __name__ == "__main__":
+    main()
